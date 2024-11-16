@@ -37,10 +37,14 @@ The **Library API** is a robust and efficient solution designed to streamline li
   "password": "ShawnRimando"
 }
 
-#### **Response**:
-  - **Status Code*: 200 
+**Status Code: 400**
+
+**Error Message:**
+
 ```json
 {
-  "status": "success",
-  "data": null
-}
+  "status": "fail",
+  "data": {
+    "Message": "Invalid Email! Try another one."
+  }
+} 
