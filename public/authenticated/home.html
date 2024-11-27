@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="../css/output.css" rel="stylesheet"/>
+    <title>Home</title>
+</head>
+<body>
+
+    <div id="modal-bg" class="hidden h-screen w-screen opacity-80 fixed z-[20] left-0 top-0 bg-[#000000]">
+
+    </div>
+    
+    <header class="h-[10vh]">
+        <h1>Welcome</h1>
+
+        <button>LOG OUT</button>
+
+    </header>
+
+    <main class="h-[80vh]">
+
+        <!-- Display all books -->
+        <section>
+
+            <section class="flex items-center mb-4">
+                <h2>All Books</h2>
+                <button onclick="addBookModal()" class="ml-4 hover:bg-green-950 p-3 rounded-md bg-green-800 text-white self-center" type="button">Create</button>
+            </section>
+
+            <section>
+                <table class="w-full">
+                    <thead class="w-full">
+                        <tr class="w-full">
+                            <th>Author</th>
+                            <th>Title</th>
+                            <th>Genre</th>
+                            <th>Operation</th>
+                        </tr>
+                    </thead>
+        
+                    <tbody>
+        
+                    </tbody>
+        
+                </table>
+            </section>
+        </section>
+    </main>
+
+
+    <!-- CRUD OPERATIONS -->
+    <section>
+
+        <!-- Add Book modal -->
+        <section class="fixed z-[30] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white xs:w-[97%] md:w-[50%] xl:w-[35%] p-4 rounded-2xl shadow-[_0_2px_5px_black] hidden" id="add-book-modal" >
+            <form  id="add-book">
+                <h2>Add Book</h2>
+
+                <input placeholder="Title"/>
+
+                <label for="add-book-select-author">Select author : </label>
+                <select id="add-book-select-author">
+
+                </select>
+                <input id="add-genre" required type="text" placeholder="Genre"/>
+
+                <button type="reset">Discard</button>
+                <button type="submit">Add</button>
+            </form>
+        </section>
+
+    </section>
+
+    <footer class="h-[10vh]">
+        <ul class="flex justify-around">
+            <li>Shawn Lou Yi</li>
+            <li>&copy; All rights reserved.</li>
+        </ul>
+    </footer>
+
+    <script src="../js/ui/ui.js"></script>
+    <script src="../js/apis/crud.js"></script>
+
+</body>
+</html>

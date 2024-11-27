@@ -1,13 +1,18 @@
 <?php 
 
-    use \Psr\Http\Message\ServerRequestInterface as Request;
-    use \Psr\Http\Message\ResponseInterface as Response;
+    use Psr\Http\Message\ServerRequestInterface as Request;
+    use Psr\Http\Message\ResponseInterface as Response;
+    use Firebase\JWT\JWT;
+    use Firebase\JWT\Key;
+
     require '../src/vendor/autoload.php';
 
-    use \Firebase\JWT\JWT;
-    use \Firebase\JWT\Key;
-
     $app = new \Slim\App;
+
+    header("Access-Control-Allow-Origin: http://127.0.0.1:5500");  // Corrected, without trailing slash
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, token");
+    header("Access-Control-Allow-Credentials: true");
 
     //register (admin or user)
     $app->post('/users/register', function (Request $request, Response $response, array $args) {
@@ -1233,83 +1238,104 @@ $app->post("/authors/add", function (Request $request, Response $response, array
         return $response;
     });
 
-    //Display all Authors 
-    $app->get("/authors/display", function (Request $request, Response $response, array $args) {
-        $servername = "localhost";
-        $username = "root";
-        $password = "";
-        $dbname = "library";
 
-        $key ='server_key';
-        $data=json_decode($request->getBody());
-        $jwt=$data->token;
+$app->get("/authors/display", function (Request $request, Response $response, array $args) {
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "library";
+    $key = 'server_key';
+
+    // Retrieve the token from the Authorization header
+    $authHeader = $request->getHeaderLine('Authorization');
+
+    // Check if the token is provided in the correct format
+    if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        return $response->withStatus(400)->write(
+            json_encode(['status' => 'fail', 'message' => 'Token is missing or invalid'])
+        );
+    }
+
+    $jwt = $matches[1]; // Extract the token from the header
+
+    try {
+        // Decode the JWT
+        $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
+
+        // Extract user details from the decoded token
+        $userid = $decoded->data->userid;
+        $access_level = $decoded->data->access_level;
 
         try {
-            $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
-    
-            try {
-                $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            // Connect to the database
+            $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                $userid = $decoded->data->userid;
-                $access_level = $decoded->data->access_level;
+            // Verify the token in the database
+            $sql = "SELECT username, token FROM users WHERE userid = :userid";
+            $statement = $conn->prepare($sql);
+            $statement->execute(['userid' => $userid]);
+            $userInfo = $statement->fetch(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT username, password, token FROM users WHERE userid = :userid";
-                $statement = $conn->prepare($sql);
-                $statement->execute(['userid' => $userid]);
-                $userInfo = $statement->fetch(PDO::FETCH_ASSOC);
-
-                if ($userInfo['token'] !== $jwt) {
-                    $response->getBody()->write(
-                        json_encode(array("status" => "fail", "data" => array("Message" => "Token is invalid or outdated.")))
-                    );
-                    return $response;
-                }
-    
-                $sql = "SELECT * FROM authors";
-                $statement = $conn->query($sql);
-                $authorsCount = $statement->rowCount();
-                $displayAuthors = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-                if ($authorsCount > 0) {
-                    $key = 'server_key';
-                    $expire = time();
-
-                    $payload = [
-                        'iss' => 'http://library.org',
-                        'aud' => 'http://library.com',
-                        'iat' => $expire,
-                        'exp' => $expire + 3600,
-                        'data' => array(
-                            'userid' => $userid, 
-                            "name" => $username,
-                            "access_level" => $access_level
-                        )
-                    ];
-
-                    $new_jwt = JWT::encode($payload, $key, 'HS256');
-
-                    $sql = "UPDATE users SET token = :token  WHERE userid = :userid";
-                    $statement = $conn->prepare($sql);
-                    $statement->execute(['token' => $new_jwt, 'userid' => $userid]);
-
-                    $response->getBody()->write(
-                        json_encode(array("status" => "success", "new_token" => $new_jwt, "data" => $displayAuthors))
-                    );
-                } else {
-                    $response->getBody()->write(json_encode(array("status" => "fail", "Message" => "No authors found.")));
-                }
-
-            } catch (PDOException $e) {
-                $response->getBody()->write(json_encode(array("status" => "fail", "data" => array("Message" => $e->getMessage()))));
+            if ($userInfo['token'] !== $jwt) {
+                return $response->withStatus(401)->write(
+                    json_encode(['status' => 'fail', 'message' => 'Token is invalid or outdated'])
+                );
             }
-        } catch (Exception $e) {
-            $response->getBody()->write(json_encode(array("status" => "fail", "data" => array("Message" => $e->getMessage()))));
+
+            // Fetch all authors
+            $sql = "SELECT * FROM authors";
+            $statement = $conn->query($sql);
+            $authorsCount = $statement->rowCount();
+            $displayAuthors = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($authorsCount > 0) {
+                // Generate a new token
+                $expire = time();
+                $payload = [
+                    'iss' => 'http://library.org',
+                    'aud' => 'http://library.com',
+                    'iat' => $expire,
+                    'exp' => $expire + 3600, // Token expires in 1 hour
+                    'data' => [
+                        'userid' => $userid,
+                        'name' => $userInfo['username'],
+                        'access_level' => $access_level
+                    ]
+                ];
+                $new_jwt = JWT::encode($payload, $key, 'HS256');
+
+                // Update the new token in the database
+                $sql = "UPDATE users SET token = :token WHERE userid = :userid";
+                $statement = $conn->prepare($sql);
+                $statement->execute(['token' => $new_jwt, 'userid' => $userid]);
+
+                // Send the authors and the new token as the response
+                $response->getBody()->write(
+                    json_encode(['status' => 'success', 'new_token' => $new_jwt, 'data' => $displayAuthors])
+                );
+            } else {
+                $response->getBody()->write(
+                    json_encode(['status' => 'fail', 'message' => 'No authors found'])
+                );
+            }
+        } catch (PDOException $e) {
+            $response->getBody()->write(
+                json_encode(['status' => 'fail', 'message' => $e->getMessage()])
+            );
         }
+    } catch (Exception $e) {
+        $response->getBody()->write(
+            json_encode(['status' => 'fail', 'message' => 'Invalid token: ' . $e->getMessage()])
+        );
+    }
+
+    // Close the connection
+    $conn = null;
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
     
-        $conn = null;
-        return $response;
-    });
 
     $app->run();
 
