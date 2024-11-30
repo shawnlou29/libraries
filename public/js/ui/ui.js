@@ -1,9 +1,16 @@
-const addBookModal = () =>{
+const showAddBookModal = () =>{
 
     document.querySelector('#add-book-modal').classList.remove('hidden');
     document.querySelector('#modal-bg').classList.remove('hidden');
 
     getAllAuthors();
+
+}
+
+const hideAddBookModal = () =>{
+
+    document.querySelector('#add-book-modal').classList.add('hidden');
+    document.querySelector('#modal-bg').classList.add('hidden');
 
 }
 

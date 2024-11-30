@@ -37,6 +37,10 @@ const login = () =>{
     
         }catch(e){
             console.error(e);
+
+            window.location.href = './index.html';
+
+
         }
     });
 }
@@ -61,9 +65,10 @@ const createAccount = () =>{
 
                 method : 'POST',
                 body : JSON.stringify({
-                    "username" : usn,
-                    "email" : email,
-                    "password" : password
+                    'username' : usn,
+                    'email' : email,
+                    'password' : password,
+                    'access_level' : 'admin'
                 }),
                 headers : {
                     'Content-Type' : 'application/json'

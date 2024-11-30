@@ -7,46 +7,43 @@
     <link href="../css/output.css" rel="stylesheet"/>
     <title>Home</title>
 </head>
-<body>
+<body class="overflow-y-hidden">
 
     <div id="modal-bg" class="hidden h-screen w-screen opacity-80 fixed z-[20] left-0 top-0 bg-[#000000]">
 
     </div>
     
-    <header class="h-[10vh]">
-        <h1>Welcome</h1>
+    <header class="h-[10vh] flex justify-between items-center px-4">
+        <h1 class="font-bold text-3xl">Library Management System</h1>
 
-        <button>LOG OUT</button>
+        <button onclick="logout()" class="bg-red-900 text-sm hover:bg-red-950 text-white rounded-lg p-2 w-[7%] h-[40%]">LOG OUT</button>
 
     </header>
 
-    <main class="h-[80vh]">
+    <main class="h-[80vh] px-4">
 
         <!-- Display all books -->
-        <section>
+        <section class="flex items-center h-[10vh]">
+            <h2>All Books</h2>
+            <button onclick="showAddBookModal()" class="ml-4 hover:bg-green-950 p-3 rounded-md bg-green-800 text-white self-center" type="button">Add book</button>
+        </section>
 
-            <section class="flex items-center mb-4">
-                <h2>All Books</h2>
-                <button onclick="addBookModal()" class="ml-4 hover:bg-green-950 p-3 rounded-md bg-green-800 text-white self-center" type="button">Create</button>
-            </section>
-
-            <section>
-                <table class="w-full">
-                    <thead class="w-full">
-                        <tr class="w-full">
-                            <th>Author</th>
-                            <th>Title</th>
-                            <th>Genre</th>
-                            <th>Operation</th>
-                        </tr>
-                    </thead>
-        
-                    <tbody>
-        
-                    </tbody>
-        
-                </table>
-            </section>
+        <section class="overflow-y-scroll h-[70vh]">
+            <table class="w-full z-30 h-full">
+                <thead class="w-full">
+                    <tr class="w-full">
+                        <th>Author</th>
+                        <th>Title</th>
+                        <th>Genre</th>
+                        <th>Operation</th>
+                    </tr>
+                </thead>
+    
+                <tbody id="display-books-tbody">
+    
+                </tbody>
+    
+            </table>
         </section>
     </main>
 
@@ -56,26 +53,35 @@
 
         <!-- Add Book modal -->
         <section class="fixed z-[30] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white xs:w-[97%] md:w-[50%] xl:w-[35%] p-4 rounded-2xl shadow-[_0_2px_5px_black] hidden" id="add-book-modal" >
-            <form  id="add-book">
-                <h2>Add Book</h2>
+            <form class="flex flex-col justify-center"  id="add-book">
+                <div class="flex justify-between items-center mb-4">
+                    <h2>Add Book</h2>
+                    <!-- <button onclick="hideAddBookModal()" type="button" class="font-bold hover:text-red-800">&times;</button> -->
+                </div>
 
-                <input placeholder="Title"/>
+                <input id="add-book-title" class="p-2 border border-solid border-black rounded-lg mb-4" placeholder="Title"/>
 
-                <label for="add-book-select-author">Select author : </label>
-                <select id="add-book-select-author">
+                <input class="p-2 border border-solid border-black rounded-lg mb-4" id="add-book-genre" required type="text" placeholder="Genre"/>
 
-                </select>
-                <input id="add-genre" required type="text" placeholder="Genre"/>
+                <div class="w-[75%] flex justify-between mb-4">
+                    <label for="add-book-select-author">Select author : </label>
+                    <select id="add-book-select-author"></select>
 
-                <button type="reset">Discard</button>
-                <button type="submit">Add</button>
+                </div>
+
+                <div class="flex items-center w-full justify-around">
+                    <button onclick="hideAddBookModal()" class="bg-red-800 hover:bg-red-950 p-3 w-[20%] rounded-lg text-white" type="reset">Discard</button>
+                    <button class="hover:bg-green-950 w-[20%] rounded-lg bg-green-800 p-3 text-white" type="submit">Add</button>
+                </div>
             </form>
         </section>
 
     </section>
 
-    <footer class="h-[10vh]">
-        <ul class="flex justify-around">
+    <hr/>
+
+    <footer class="h-[10vh] bg-white z-50">
+        <ul class="flex justify-around items-center h-full">
             <li>Shawn Lou Yi</li>
             <li>&copy; All rights reserved.</li>
         </ul>
