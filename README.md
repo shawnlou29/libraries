@@ -25,6 +25,12 @@ The **Library API** is a robust and efficient solution designed to streamline li
 
 ---
 
+## Installation Requirements for UI 
+- *Tailwind css:*
+```bash
+npm install -D tailwindcss
+npx tailwindcss init
+```
 ## Endpoints  
 -----------------------------------------------------------------------------------
 ## Endpoint 1: `/users/register`  
